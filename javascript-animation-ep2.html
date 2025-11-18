@@ -1,0 +1,161 @@
+<!-- sviluppiamo un animazione in Javascript -->
+<!-- @samsereni 15/11/2025 -->
+<!-- strumenti: un editor (notepad++) e un browser (firefox) -->
+<html>
+<head>
+	<title>Animazione</title>
+	<style>
+	*{
+		position:relative;
+		margin:0;
+		padding:0
+		box-sizing:border-box;
+	}
+	body{
+		width:100vw;
+		height:100vh;
+	}
+	#game{
+		background-color:#1a293b;
+		width:100%;
+		height:100%;
+	}
+	.controls{
+		position:absolute;
+		bottom:30px;
+		left:50%;
+		transform:translateX(-50%);
+		z-index:10;
+	}
+	button{
+		padding:8px 16px;
+		margin:6px;
+		border-radius:4px;
+		border:0;
+		background:#3b82f6;
+		color:white;
+		font-weight:bold;
+		font-size:20px;
+		cursor:pointer;
+	}
+	button:hover{
+		background:#2563eb;
+	}
+	</style>
+</head>
+<body>
+	<canvas id="game"></canvas>
+	<div class="controls">
+		<button onclick="Animazione.start()">Start</button>
+		<button onclick="Animazione.stop()">Stop</button>
+	</div>
+<script>
+
+class Edificio{
+	constructor(x,y,w,h){
+		this.x=x;
+		this.y=y - h/2;
+		this.w=w;	//width (base)
+		this.h=h;	//height (altezza)
+	}
+	aggiorna(cameraX,screenWidth,screenHeight){
+		this.x += cameraX;
+		
+		if(this.x + this.w/2 < 0){
+			this.x=screenWidth + this.w/2;
+		}
+		if(this.x - this.w/2 > screenWidth){
+			this.x= 0 - this.w/2;
+		}
+	}
+	visualizza(ctx){
+		ctx.fillStyle='#475569';
+		ctx.fillRect(
+			this.x - this.w/2,
+			this.y - this.h/2,//*********
+			this.w,
+			this.h
+		
+		);
+	}
+}
+const Animazione={
+	inEsecuzione:false,
+	frameId:null,
+	pianoTerra:100,
+	spostamentoCamera:-1,
+	canvas:null,
+	ctx:null,
+	oggetti:[],
+	gameloop:function(){
+		if(!Animazione.inEsecuzione)return;
+		
+		if(Animazione.ctx){
+			Animazione.ctx.clearRect(
+				0,
+				0,
+				Animazione.canvas.width,
+				Animazione.canvas.height
+			);
+			
+			Animazione.oggetti.forEach(oggetto=>{
+				oggetto.aggiorna(
+					Animazione.spostamentoCamera,
+					Animazione.canvas.width,
+					Animazione.canvas.height
+				);
+				oggetto.visualizza(
+					Animazione.ctx
+				);
+			});
+			
+		}else console.error('ctx non trovato');
+		
+		Animazione.frameId=requestAnimationFrame(Animazione.gameloop);
+	},
+	start(){
+		if(Animazione.inEsecuzione)return;
+		
+		const baseY=Animazione.canvas.height - Animazione.pianoTerra;
+		Animazione.oggetti=[];
+		
+		Animazione.oggetti.push(new Edificio(80,baseY,80,200));
+		Animazione.oggetti.push(new Edificio(200,baseY,140,300));
+		Animazione.oggetti.push(new Edificio(390,baseY,100,150));
+		Animazione.oggetti.push(new Edificio(540,baseY,120,250));
+		console.log('Oggetti creati',Animazione.oggetti.length);
+		
+		Animazione.frameId=requestAnimationFrame(Animazione.gameloop);
+		Animazione.inEsecuzione=true;
+		console.log("Animazione avviata")
+	},
+	stop(){
+		if(!Animazione.inEsecuzione)return;
+		
+		cancelAnimationFrame(Animazione.frameId);
+		Animazione.inEsecuzione=false;
+		console.log("Animazione fermata")
+	}
+}
+
+window.onload=()=>{
+	Animazione.canvas=document.getElementById('game');
+	if(!Animazione.canvas){
+		cnsole.error('canvas not found');
+		return;
+	}
+	
+	Animazione.ctx=Animazione.canvas.getContext('2d');
+	const resizeAnimazione=function(){
+		if(Animazione.canvas){
+			Animazione.canvas.width=window.innerWidth;//***
+			Animazione.canvas.height=window.innerHeight;//****
+		}
+	}
+	window.addEventListener('resize',resizeAnimazione);
+	resizeAnimazione();
+}
+
+</script>
+</body>
+</html>
